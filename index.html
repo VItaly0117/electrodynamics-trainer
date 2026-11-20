@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light}html,body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Тренажер електродинаміки</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Концепція: лабораторний зошит на міліметрівці. E-поле червоне, B-поле синє, як на кресленнях. */
+:root{
+  --paper:#F2F4F7; --panel:#FFFFFF; --ink:#101828; --ink2:#475467; --line:#D0D5DD; --grid:#E6E9EE;
+  --e:#C8372D; --b:#1D5FD1; --ok:#17803D; --warn:#B54708; --tint-b:#E8F0FD; --tint-e:#FBEAE8;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --cond:'IBM Plex Sans Condensed','IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1217; --panel:#161B22; --ink:#E7EBF0; --ink2:#9AA6B5; --line:#2B3340; --grid:#1B212A;
+    --e:#FF7B63; --b:#6EA2FF; --ok:#4CC38A; --warn:#F2A65A; --tint-b:#16233A; --tint-e:#3A1D19; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1217; --panel:#161B22; --ink:#E7EBF0; --ink2:#9AA6B5; --line:#2B3340; --grid:#1B212A;
+  --e:#FF7B63; --b:#6EA2FF; --ok:#4CC38A; --warn:#F2A65A; --tint-b:#16233A; --tint-e:#3A1D19; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;
+  color:var(--ink); font:400 16px/1.55 var(--sans);
+  padding-block:20px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:860px;margin:0 auto}
+header{margin-bottom:18px}
+.kicker{font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
+h1{font:600 clamp(28px,6vw,40px)/1.1 var(--cond);margin:8px 0 6px;text-wrap:balance}
+.sub{color:var(--ink2);margin:0;max-width:62ch}
+nav{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--line);margin:18px 0 20px;scrollbar-width:thin}
+nav button{flex:none;background:none;border:0;border-bottom:3px solid transparent;color:var(--ink2);font:500 14px/1 var(--sans);padding:12px 14px;cursor:pointer}
+nav button:hover{color:var(--ink)}
+nav button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--b)}
+nav button:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--b);outline-offset:2px}
+section.tab[hidden]{display:none}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:14px}
+.row label{display:flex;flex-direction:column;gap:4px;font:500 12px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);min-width:0}
+select,input[type=search]{font:400 15px/1.3 var(--sans);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:9px 10px;min-width:0;max-width:100%}
+.chk{flex-direction:row!important;align-items:center;gap:8px!important;text-transform:none!important;letter-spacing:0!important;font:400 14px/1.2 var(--sans)!important;color:var(--ink)!important;padding-bottom:9px}
+.bar{display:flex;height:8px;border-radius:2px;overflow:hidden;background:var(--grid);margin:8px 0 4px}
+.bar i{display:block;height:100%}
+.bar .k{background:var(--b)} .bar .w{background:var(--e)}
+.stats{display:flex;gap:14px;flex-wrap:wrap;font:400 13px/1.3 var(--mono);color:var(--ink2);margin-bottom:14px}
+.meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.id{font:500 12px/1 var(--mono);background:var(--ink);color:var(--paper);padding:4px 7px;border-radius:3px}
+.secn{font:400 12px/1.3 var(--mono);color:var(--ink2)}
+.q{font:600 clamp(19px,4.2vw,24px)/1.3 var(--sans);margin:0 0 16px;text-wrap:pretty;overflow-wrap:anywhere}
+.ans{border-top:1px dashed var(--line);margin-top:6px;padding-top:12px}
+.ans .lab{font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--b);margin-bottom:8px}
+.ans .body{overflow-x:auto;overflow-wrap:anywhere}
+.src{margin-top:10px;font:400 12px/1.3 var(--mono);color:var(--ink2)}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.btn{font:500 15px/1 var(--sans);border-radius:5px;padding:12px 18px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.know{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.dont{background:var(--e);border-color:var(--e);color:#fff}
+.hint{font:400 12px/1.4 var(--mono);color:var(--ink2);margin-top:12px}
+.empty{padding:22px 4px;color:var(--ink2)}
+details{border:1px solid var(--line);background:var(--panel);border-radius:5px;margin-bottom:8px}
+details summary{cursor:pointer;padding:11px 12px;display:flex;gap:10px;align-items:baseline;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary .id{flex:none}
+details summary .t{min-width:0;overflow-wrap:anywhere}
+details .ans{margin:0;padding:12px;border-top:1px dashed var(--line)}
+.dot{flex:none;width:9px;height:9px;border-radius:50%;margin-left:auto;align-self:center;border:1px solid var(--line)}
+.dot.k{background:var(--b);border-color:var(--b)} .dot.w{background:var(--e);border-color:var(--e)}
+.w{margin-bottom:22px}
+.wh{font:600 18px/1.2 var(--cond);margin:0 0 4px}
+.wd{color:var(--ink2);font-size:14px;margin:0 0 12px;max-width:66ch}
+.ctl{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+.ctl label{display:flex;flex-direction:column;gap:6px;font:500 12px/1.2 var(--mono);color:var(--ink2);min-width:150px;flex:1 1 150px}
+.ctl output{color:var(--ink);font-weight:500}
+input[type=range]{width:100%;accent-color:var(--b)}
+svg.fig{display:block;width:100%;height:auto;max-height:420px;background:var(--panel);border:1px solid var(--line);border-radius:5px}
+svg.fig text{font:400 12px var(--mono);fill:var(--ink2)}
+svg.fig .big{font-size:13px;fill:var(--ink)}
+.ax{stroke:var(--ink2);stroke-width:1.2;fill:none}
+.gr{stroke:var(--grid);stroke-width:1;fill:none}
+.lt{stroke:var(--ink2);stroke-width:1;stroke-dasharray:5 4;fill:none}
+.sk{stroke:var(--ink);stroke-width:2.4;fill:none;stroke-linecap:round}
+.cb{stroke:var(--b);stroke-width:2.2;fill:none}
+.ce{stroke:var(--e);stroke-width:2.2;fill:none}
+.cb2{stroke:var(--b);stroke-width:1.2;stroke-dasharray:2 4;fill:none}
+.fb{fill:var(--tint-b);stroke:none} .fe{fill:var(--tint-e);stroke:none}
+.pt{fill:var(--ink)} .ptb{fill:var(--b)} .pte{fill:var(--e)}
+.ro{display:flex;gap:6px 18px;flex-wrap:wrap;margin-top:10px;font:400 13px/1.4 var(--mono);color:var(--ink2)}
+.ro b{color:var(--ink);font-weight:500}
+.hbar{height:10px;background:var(--grid);border-radius:2px;margin-top:4px;overflow:hidden;width:min(100%,260px)}
+.hbar i{display:block;height:100%;background:var(--b)}
+.notes{margin:12px 0 0;padding-left:18px;font-size:15px}
+.notes li{margin:4px 0}
+mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;max-width:100%}
+@media (prefers-reduced-motion:no-preference){.ans{animation:fade .18s ease-out}@keyframes fade{from{opacity:0}to{opacity:1}}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <div class="kicker">Електродинаміка · курс Гусака А. М.</div>
+  <h1>Тренажер до усного іспиту</h1>
+  <p class="sub"><a href="answers.pdf" style="color:var(--b)">Усі відповіді одним PDF (38 стор.)</a> · 431 питання з відповідями, формулами й посиланнями на лекції, плюс інтерактивні рисунки: що змінюється, коли крутиш параметр.</p>
+</header>
+<nav id="tabs" role="tablist" aria-label="Розділи">
+  <button role="tab" data-tab="train" aria-selected="true">Тренування</button>
+  <button role="tab" data-tab="ref" aria-selected="false">Довідник</button>
+  <button role="tab" data-tab="stv" aria-selected="false">СТВ</button>
+  <button role="tab" data-tab="waves" aria-selected="false">Хвилі й метали</button>
+  <button role="tab" data-tab="rad" aria-selected="false">Випромінювання</button>
+  <button role="tab" data-tab="mag" aria-selected="false">Магнетики</button>
+</nav>
+
+<section class="tab" id="tab-train">
+  <div class="row">
+    <label>Розділ<select id="t-sec"></select></label>
+    <label>Показати<select id="t-filter">
+      <option value="todo">Ще не вивчені</option>
+      <option value="weak">Лише «не знаю»</option>
+      <option value="all">Усі</option>
+    </select></label>
+    <label class="chk"><input type="checkbox" id="t-shuf" checked> Випадково</label>
+  </div>
+  <div class="panel" id="t-panel"><div class="empty">Завантаження питань…</div></div>
+  <div class="stats" id="t-stats"></div>
+</section>
+
+<section class="tab" id="tab-ref" hidden>
+  <div class="row">
+    <label style="flex:1 1 220px">Пошук<input type="search" id="r-q" placeholder="наприклад: скін, Брюстер, диполь"></label>
+    <label>Розділ<select id="r-sec"></select></label>
+  </div>
+  <div id="r-list"></div>
+</section>
+
+<section class="tab" id="tab-stv" hidden>
+  <div class="w panel">
+    <h2 class="wh">Світловий годинник: сповільнення часу й скорочення довжини</h2>
+    <p class="wd">Ліворуч годинник у власній системі: промінь іде вертикально. Праворуч те саме з боку спостерігача, повз якого годинник рухається: шлях променя довший, тому час тягнеться. Крути швидкість.</p>
+    <div class="ctl"><label for="s1">v / c = <output id="s1o">0,60</output><input id="s1" type="range" min="0" max="0.99" step="0.01" value="0.6"></label></div>
+    <svg class="fig" id="f1" viewBox="0 0 640 300" role="img" aria-label="Світловий годинник у двох системах відліку"></svg>
+    <div class="ro" id="ro1"></div>
+  </div>
+  <div class="w panel">
+    <h2 class="wh">Діаграма Мінковського: одночасність відносна</h2>
+    <p class="wd">Дві події A і B одночасні в системі K (лежать на горизонталі). Штрихована система K′ рухається вздовж x. Пунктири показують, що K′ вважає «одночасним». Чим більше v, тим раніше в K′ відбувається B.</p>
+    <div class="ctl"><label for="s2">v / c = <output id="s2o">0,50</output><input id="s2" type="range" min="0" max="0.95" step="0.01" value="0.5"></label></div>
+    <svg class="fig" id="f2" viewBox="0 0 520 520" role="img" aria-label="Діаграма Мінковського з осями K і K штрих"></svg>
+    <div class="ro" id="ro2"></div>
+  </div>
+  <div class="panel"><b>Що запам'ятати</b>
+    <ul class="notes">
+      <li>$\gamma=1/\sqrt{1-\beta^2}$, сповільнення часу $\Delta t=\gamma\Delta t_0$, скорочення довжини $L=L_0/\gamma$ (лише вздовж руху).</li>
+      <li>Лоренц: $x'=\gamma(x-vt)$, $t'=\gamma\bigl(t-vx/c^2\bigr)$. Відносність одночасності: $c\,\Delta t'=-\gamma\beta\,\Delta x$.</li>
+      <li>Інваріант інтервалу $s^2=c^2t^2-x^2-y^2-z^2$ і 4-імпульсу $E^2-p^2c^2=m_0^2c^4$.</li>
+      <li>Парадокс стола і стержня розв'язує відносність одночасності: у системі стола стержень нахиляється й не проходить.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="tab" id="tab-waves" hidden>
+  <div class="w panel">
+    <h2 class="wh">Френель: відбивання на межі двох діелектриків</h2>
+    <p class="wd">Червоне — $s$-поляризація, синє — $p$-поляризація. Знайди кут Брюстера, де $R_p=0$. Вибери $n_1>n_2$, щоб побачити повне внутрішнє відбивання.</p>
+    <div class="ctl">
+      <label for="n1">n₁ = <output id="n1o">1,00</output><input id="n1" type="range" min="1" max="2.5" step="0.01" value="1"></label>
+      <label for="n2">n₂ = <output id="n2o">1,50</output><input id="n2" type="range" min="1" max="2.5" step="0.01" value="1.5"></label>
+    </div>
+    <svg class="fig" id="f3" viewBox="0 0 640 330" role="img" aria-label="Коефіцієнти відбивання Rs і Rp залежно від кута падіння"></svg>
+    <div class="ro" id="ro3"></div>
+  </div>
+  <div class="w panel">
+    <h2 class="wh">Скін-ефект: глибина проникнення в метал</h2>
+    <p class="wd">Поле в металі спадає як $e^{-z/\delta}$. Змінюй частоту: що вона вища, то тонший шар, у якому тече змінний струм.</p>
+    <div class="ctl">
+      <label for="sf">lg f = <output id="sfo">4,0</output><input id="sf" type="range" min="1" max="9" step="0.05" value="4"></label>
+      <label for="sm">Метал<select id="sm"><option value="5.8e7">Мідь, σ = 5,8·10⁷ См/м</option><option value="3.5e7">Алюміній, σ = 3,5·10⁷ См/м</option></select></label>
+    </div>
+    <svg class="fig" id="f4" viewBox="0 0 640 280" role="img" aria-label="Затухання поля в металі з глибиною"></svg>
+    <div class="ro" id="ro4"></div>
+  </div>
+  <div class="panel"><b>Що запам'ятати</b>
+    <ul class="notes">
+      <li>$r_s=\dfrac{n_1\cos\theta_i-n_2\cos\theta_t}{n_1\cos\theta_i+n_2\cos\theta_t}$; Брюстер $\tan\theta_B=n_2/n_1$ ($R_p=0$, відбите світло повністю $s$-поляризоване).</li>
+      <li>Нормальне падіння: $R=\Bigl(\dfrac{n_1-n_2}{n_1+n_2}\Bigr)^2$; $R+T=1$. Повне відбивання: $n_1>n_2$, $\sin\theta_c=n_2/n_1$.</li>
+      <li>Друде: $\sigma(\omega)=\dfrac{\sigma_0}{1-i\omega\tau}$, $\varepsilon=1-\dfrac{\omega_p^2}{\omega^2}$; при $\omega<\omega_p$ хвиля не поширюється.</li>
+      <li>Скін-шар $\delta=\sqrt{2/(\mu\sigma\omega)}\propto\omega^{-1/2}$, поверхневий опір $R_s=1/(\sigma\delta)\propto\sqrt\omega$.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="tab" id="tab-rad" hidden>
+  <div class="w panel">
+    <h2 class="wh">Диполь, що випромінює</h2>
+    <p class="wd">Полярна діаграма інтенсивності $I\propto\sin^2\theta$: вздовж осі диполя випромінювання немає, максимум у перпендикулярній площині. Потужність росте як $\omega^4$ і $p_0^2$.</p>
+    <div class="ctl">
+      <label for="dw">ω / ω₀ = <output id="dwo">1,0</output><input id="dw" type="range" min="0.5" max="3" step="0.1" value="1"></label>
+      <label for="dp">p₀ / p₀₀ = <output id="dpo">1,0</output><input id="dp" type="range" min="0.5" max="3" step="0.1" value="1"></label>
+    </div>
+    <svg class="fig" id="f5" viewBox="0 0 420 340" role="img" aria-label="Діаграма спрямованості дипольного випромінювання"></svg>
+    <div class="ro" id="ro5"></div>
+  </div>
+  <div class="panel"><b>Що запам'ятати</b>
+    <ul class="notes">
+      <li>$P(t)=\dfrac{|\ddot{\vv p}(t')|^2}{6\pi\varepsilon_0c^3}$, $t'=t-r/c$; середня $\langle P\rangle=\dfrac{p_0^2\omega^4}{12\pi\varepsilon_0c^3}$.</li>
+      <li>$E\propto 1/r$, $I\propto 1/r^2$; $\vv E\perp\vv B\perp\vv n$, $E=cB$.</li>
+      <li>Умова дипольного наближення: $d\ll\lambda\ll r$.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="tab" id="tab-mag" hidden>
+  <div class="w panel">
+    <h2 class="wh">Феромагнетик: самоузгоджене середнє поле</h2>
+    <p class="wd">Спонтанна намагніченість — розв'язок $m=\tanh(m/\tau)$, де $\tau=T/T_c$. Вище $T_c$ є лише $m=0$, нижче з'являються стійкі $\pm m_0$ (графік праворуч — перетин прямої й кривої).</p>
+    <div class="ctl"><label for="mt">T / T_c = <output id="mto">0,70</output><input id="mt" type="range" min="0.1" max="1.6" step="0.01" value="0.7"></label></div>
+    <svg class="fig" id="f6" viewBox="0 0 640 300" role="img" aria-label="Спонтанна намагніченість і графічний розв'язок рівняння середнього поля"></svg>
+    <div class="ro" id="ro6"></div>
+  </div>
+  <div class="panel"><b>Що запам'ятати</b>
+    <ul class="notes">
+      <li>Парамагнетик: $M=n\mu\tanh x$, $x=\mu B/kT$; слабке поле — закон Кюрі $\chi=C/T$.</li>
+      <li>Обмін: $U_{ij}=-J s_is_j$; $T_c=zJ/k$; вище $T_c$ закон Кюрі–Вейса $\chi=C/(T-T_c)$.</li>
+      <li>Нижче $T_c$: $M_{sp}\sim\sqrt{T_c-T}$; домени дають $M\approx0$ без порушення порядку.</li>
+      <li>Діамагнетик $\chi<0$ (вихрове $E$ змінює швидкість електрона), антиферомагнетик $M=0$, $L\ne0$, феримагнетик $M\ne0$.</li>
+    </ul>
+  </div>
+</section>
+</div>
+
+<script>
+window.MathJax={
+  tex:{inlineMath:[['$','$']],displayMath:[['\\[','\\]'],['$$','$$']],processEscapes:true,
+    macros:{vv:['\\boldsymbol{#1}',1],rot:'\\operatorname{rot}',grad:'\\operatorname{grad}',dd:'\\mathrm{d}',pd:['\\dfrac{\\partial #1}{\\partial #2}',2]}},
+  svg:{fontCache:'global'},
+  startup:{typeset:false}
+};
+</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const fmt=(x,d=2)=>x.toFixed(d).replace('.',',');
+let cards=[], prog={}, tries=0;
+function loadProg(){try{prog=JSON.parse(localStorage.getItem('edyn-prog-v1')||'{}')}catch(e){prog={}}}
+function saveProg(){try{localStorage.setItem('edyn-prog-v1',JSON.stringify(prog))}catch(e){}}
+function typeset(el,n=0){
+  if(window.MathJax&&MathJax.typesetPromise){MathJax.typesetPromise([el]).catch(()=>{});}
+  else if(n<60){setTimeout(()=>typeset(el,n+1),250)}
+}
+
+/* ---------- вкладки ---------- */
+const TABS=['train','ref','stv','waves','rad','mag'], typeset_done={};
+function showTab(id){
+  if(!TABS.includes(id)) id='train';
+  TABS.forEach(t=>{ $('#tab-'+t).hidden=t!==id; const b=$('[data-tab="'+t+'"]'); b.setAttribute('aria-selected',String(t===id)); });
+  if(!typeset_done[id]){typeset_done[id]=1; typeset($('#tab-'+id));}
+  if(id==='stv'){drawLight();drawMink();} if(id==='waves'){drawFresnel();drawSkin();} if(id==='rad')drawDipole(); if(id==='mag')drawMag();
+}
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]'); if(b){location.hash=b.dataset.tab;}});
+window.addEventListener('hashchange',()=>showTab(location.hash.slice(1)));
+
+/* ---------- тренування ---------- */
+const st={sec:'all',filter:'todo',shuffle:true,queue:[],pos:0,revealed:false};
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function buildQueue(){
+  let l=cards.filter(c=>st.sec==='all'||c.s===st.sec);
+  if(st.filter==='weak') l=l.filter(c=>prog[c.id]==='w');
+  if(st.filter==='todo') l=l.filter(c=>prog[c.id]!=='k');
+  if(st.shuffle) shuffle(l);
+  st.queue=l; st.pos=0; st.revealed=false; renderTrain();
+}
+function renderStats(){
+  const total=cards.length, k=cards.filter(c=>prog[c.id]==='k').length, w=cards.filter(c=>prog[c.id]==='w').length;
+  const sel=cards.filter(c=>st.sec==='all'||c.s===st.sec), sk=sel.filter(c=>prog[c.id]==='k').length, sw=sel.filter(c=>prog[c.id]==='w').length;
+  $('#t-stats').innerHTML='<span>Усього: знаю <b>'+k+'</b> · не знаю <b>'+w+'</b> · не торкався <b>'+(total-k-w)+'</b></span><span>У розділі: '+sk+' / '+sel.length+'</span>';
+  return {n:sel.length,k:sk,w:sw};
+}
+function renderTrain(){
+  const p=$('#t-panel'), s=renderStats();
+  const bar='<div class="bar" aria-hidden="true"><i class="k" style="width:'+(s.n?100*s.k/s.n:0)+'%"></i><i class="w" style="width:'+(s.n?100*s.w/s.n:0)+'%"></i></div>';
+  if(!st.queue.length){p.innerHTML=bar+'<div class="empty">У цій добірці нічого немає. Змін фільтр або розділ.</div>';return;}
+  if(st.pos>=st.queue.length){
+    p.innerHTML=bar+'<div class="empty"><b>Коло закінчено.</b> Питань у цій добірці: '+st.queue.length+'. Натисни, щоб пройти ще раз із новими станами.<div class="btns"><button class="btn" id="t-again">Ще раз</button></div></div>';
+    $('#t-again').onclick=buildQueue; return;
+  }
+  const c=st.queue[st.pos];
+  p.innerHTML=bar+'<div class="meta"><span class="id">'+c.n+'</span><span class="secn">'+c.s+'</span><span class="secn" style="margin-left:auto">'+(st.pos+1)+' / '+st.queue.length+'</span></div>'+
+    '<h2 class="q">'+c.q+'</h2>'+
+    '<div id="t-ans" class="ans" hidden><div class="lab">Відповідь</div><div class="body">'+c.a+'</div>'+(c.src?'<div class="src">'+c.src+'</div>':'')+'</div>'+
+    '<div class="btns" id="t-btns"></div><div class="hint">Пробіл: показати відповідь · K або →: знаю · W: не знаю</div>';
+  typeset(p.querySelector('.q'));
+  drawBtns();
+}
+function drawBtns(){
+  const b=$('#t-btns'); if(!b) return;
+  if(!st.revealed){b.innerHTML='<button class="btn" id="b-show">Показати відповідь</button><button class="btn ghost" id="b-skip">Пропустити</button>';
+    $('#b-show').onclick=reveal; $('#b-skip').onclick=()=>{st.pos++;st.revealed=false;renderTrain();};}
+  else{b.innerHTML='<button class="btn know" id="b-k">Знаю</button><button class="btn dont" id="b-w">Не знаю</button>';
+    $('#b-k').onclick=()=>mark('k'); $('#b-w').onclick=()=>mark('w');}
+}
+function reveal(){
+  const a=$('#t-ans'); if(!a||st.revealed) return;
+  st.revealed=true; a.hidden=false; typeset(a); drawBtns();
+}
+function mark(v){
+  const c=st.queue[st.pos]; if(!c||!st.revealed) return;
+  prog[c.id]=v; saveProg(); st.pos++; st.revealed=false; renderTrain();
+}
+document.addEventListener('keydown',e=>{
+  if($('#tab-train').hidden||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+  if(e.key===' '||e.key==='Enter'){ if(!st.revealed&&st.queue[st.pos]){e.preventDefault();reveal();} }
+  else if(st.revealed&&(e.key==='k'||e.key==='K'||e.key==='ArrowRight')) mark('k');
+  else if(st.revealed&&(e.key==='w'||e.key==='W')) mark('w');
+});
+function fillSections(sel,extra){
+  const secs=[...new Set(cards.map(c=>c.s))];
+  sel.innerHTML='<option value="all">Усі розділи ('+cards.length+')</option>'+secs.map(s=>'<option value="'+s.replace(/"/g,'&quot;')+'">'+s+' ('+cards.filter(c=>c.s===s).length+')</option>').join('');
+}
+
+/* ---------- довідник ---------- */
+const plain=h=>h.replace(/<[^>]+>/g,' ').replace(/&[a-z]+;/g,' ').toLowerCase();
+function renderRef(){
+  const q=$('#r-q').value.trim().toLowerCase(), sec=$('#r-sec').value, box=$('#r-list');
+  let l=cards.filter(c=>(sec==='all'||c.s===sec)&&(!q||plain(c.q).includes(q)||plain(c.a).includes(q)));
+  const total=l.length; l=l.slice(0,80);
+  box.innerHTML=(total?'':'<div class="empty">Нічого не знайдено.</div>')+l.map(c=>{
+    const mk=prog[c.id]; return '<details data-id="'+c.id+'"><summary><span class="id">'+c.n+'</span><span class="t">'+c.q+'</span><span class="dot '+(mk||'')+'"></span></summary></details>';
+  }).join('')+(total>80?'<div class="empty">Показано 80 із '+total+'. Уточни пошук.</div>':'');
+  typeset(box);
+}
+$('#r-list').addEventListener('toggle',e=>{
+  const d=e.target; if(!d.open||d.dataset.f||d.tagName!=='DETAILS') return;
+  const c=cards.find(x=>x.id===d.dataset.id); if(!c) return; d.dataset.f=1;
+  const a=document.createElement('div'); a.className='ans'; a.innerHTML='<div class="lab">Відповідь</div><div class="body">'+c.a+'</div>'+(c.src?'<div class="src">'+c.src+'</div>':'');
+  d.appendChild(a); typeset(a);
+},true);
+let rt; $('#r-q').addEventListener('input',()=>{clearTimeout(rt);rt=setTimeout(renderRef,180)});
+$('#r-sec').addEventListener('change',renderRef);
+
+/* ---------- рисунки: допоміжне ---------- */
+const P=(a)=>a.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+function arrow(x1,y1,x2,y2,cls){
+  const a=Math.atan2(y2-y1,x2-x1), h=8, d=(s)=>[x2-h*Math.cos(a+s),y2-h*Math.sin(a+s)];
+  const p=d(0.4),q=d(-0.4);
+  return '<path class="'+cls+'" d="M'+x1+' '+y1+' L'+x2+' '+y2+' M'+p[0].toFixed(1)+' '+p[1].toFixed(1)+' L'+x2+' '+y2+' L'+q[0].toFixed(1)+' '+q[1].toFixed(1)+'"/>';
+}
+
+/* 1. світловий годинник */
+function drawLight(){
+  const b=+$('#s1').value; $('#s1o').textContent=fmt(b);
+  const g=1/Math.sqrt(1-b*b), gb=g*b, L0=gb>0?Math.min(150,260/(2*gb)):150, d=2*gb*L0, yb=250, yt=yb-L0;
+  const x0=345, w=270, xs=x0+(w-d)/2;
+  let s='';
+  s+='<text class="big" x="50" y="26">Годинник у своїй системі</text><text class="big" x="'+x0+'" y="26">Спостерігач бачить рух</text>';
+  s+='<line class="sk" x1="60" y1="'+yb+'" x2="190" y2="'+yb+'"/><line class="sk" x1="60" y1="'+yt+'" x2="190" y2="'+yt+'"/>';
+  s+=arrow(125,yb-2,125,yt+2,'cb')+arrow(125,yt+2,125,yb-2,'cb');
+  s+='<text x="136" y="'+((yb+yt)/2+4)+'">L₀</text><text x="60" y="'+(yb+22)+'">Δt₀ = 2L₀/c</text>';
+  s+='<line class="sk" x1="'+x0+'" y1="'+yb+'" x2="'+(x0+w)+'" y2="'+yb+'"/><line class="sk" x1="'+x0+'" y1="'+yt+'" x2="'+(x0+w)+'" y2="'+yt+'"/>';
+  s+='<path class="ce" d="'+P([[xs,yb],[xs+d/2,yt],[xs+d,yb]])+'"/>';
+  s+='<circle class="pte" cx="'+xs+'" cy="'+yb+'" r="4"/><circle class="pte" cx="'+(xs+d)+'" cy="'+yb+'" r="4"/>';
+  s+='<line class="lt" x1="'+(xs+d/2)+'" y1="'+yb+'" x2="'+(xs+d/2)+'" y2="'+yt+'"/>';
+  s+='<text x="'+(xs+d/4-34)+'" y="'+((yb+yt)/2-6)+'" style="fill:var(--e)">cΔt/2</text>';
+  if(d>8){ s+=arrow(xs,yb+16,xs+d,yb+16,'ax')+'<text x="'+(xs+d/2-18)+'" y="'+(yb+32)+'">vΔt</text>'; }
+  s+='<text x="'+x0+'" y="'+(yb+48)+'">Δt = γΔt₀</text>';
+  $('#f1').innerHTML=s;
+  $('#ro1').innerHTML='<span>γ = <b>'+fmt(g,3)+'</b></span><span>Δt = <b>'+fmt(g,3)+'</b>·Δt₀</span><span>L = L₀/γ = <b>'+fmt(1/g,3)+'</b>·L₀</span>'+
+    '<span style="flex-basis:100%">Довжина рухомого стержня (в частках L₀)<div class="hbar"><i style="width:'+(100/g).toFixed(1)+'%"></i></div></span>';
+}
+
+/* 2. діаграма Мінковського */
+function drawMink(){
+  const b=+$('#s2').value; $('#s2o').textContent=fmt(b);
+  const g=1/Math.sqrt(1-b*b), S=100, O=[260,260], R=2.4;
+  const X=(x,t)=>[O[0]+S*x,O[1]-S*t];
+  const ln=(a,c,cls)=>{const p=X(a[0],a[1]),q=X(c[0],c[1]);return '<line class="'+cls+'" x1="'+p[0]+'" y1="'+p[1]+'" x2="'+q[0]+'" y2="'+q[1]+'"/>';};
+  let s='<defs><clipPath id="cp2"><rect x="20" y="20" width="480" height="480"/></clipPath></defs>';
+  s+='<rect x="20" y="20" width="480" height="480" fill="none" class="gr"/>';
+  s+='<g clip-path="url(#cp2)">';
+  s+=ln([-R,-R],[R,R],'lt')+ln([-R,R],[R,-R],'lt');
+  s+=ln([-R,0],[R,0],'ax')+ln([0,-R],[0,R],'ax');
+  s+=ln([-R*b,-R],[R*b,R],'ce')+ln([-R,-R*b],[R,R*b],'ce');
+  s+=ln([-R,b*(-R+1)],[R,b*(R+1)],'cb2')+ln([-R,b*(-R-1)],[R,b*(R-1)],'cb2');
+  s+='</g>';
+  const A=X(-1,0),B=X(1,0);
+  s+='<circle class="pt" cx="'+A[0]+'" cy="'+A[1]+'" r="5"/><circle class="pt" cx="'+B[0]+'" cy="'+B[1]+'" r="5"/>';
+  s+='<text class="big" x="'+(A[0]-14)+'" y="'+(A[1]+22)+'">A</text><text class="big" x="'+(B[0]+8)+'" y="'+(B[1]+22)+'">B</text>';
+  s+='<text x="486" y="'+(O[1]-6)+'" text-anchor="end">x</text><text x="'+(O[0]+8)+'" y="34">ct</text>';
+  s+='<text style="fill:var(--e)" x="'+(X(R*b,R)[0]-6)+'" y="34" text-anchor="end">ct′</text><text style="fill:var(--e)" x="486" y="'+(X(R,R*b)[1]+16)+'" text-anchor="end">x′</text>';
+  s+='<text x="30" y="496">світлові лінії ct = ±x — пунктир; синій пунктир — «одночасно» для K′</text>';
+  $('#f2').innerHTML=s;
+  $('#ro2').innerHTML='<span>У K: Δt = <b>0</b></span><span>У K′: c·(t′<sub>B</sub> − t′<sub>A</sub>) = −2γβ = <b>'+fmt(-2*g*b,3)+'</b></span><span>'+(b>0?'B відбувається раніше за A':'Системи збігаються')+'</span>';
+}
+
+/* 3. Френель */
+function fres(n1,n2,deg){
+  const th=deg*Math.PI/180, sn=n1*Math.sin(th)/n2;
+  if(sn>=1) return [1,1];
+  const ct=Math.sqrt(1-sn*sn), c=Math.cos(th);
+  const rs=(n1*c-n2*ct)/(n1*c+n2*ct), rp=(n2*c-n1*ct)/(n2*c+n1*ct);
+  return [rs*rs,rp*rp];
+}
+function drawFresnel(){
+  const n1=+$('#n1').value,n2=+$('#n2').value; $('#n1o').textContent=fmt(n1); $('#n2o').textContent=fmt(n2);
+  const x0=56,x1=610,y0=290,y1=24, X=a=>x0+(x1-x0)*a/90, Y=r=>y0-(y0-y1)*r;
+  let s='';
+  [0,0.5,1].forEach(v=>{s+='<line class="gr" x1="'+x0+'" y1="'+Y(v)+'" x2="'+x1+'" y2="'+Y(v)+'"/><text x="'+(x0-8)+'" y="'+(Y(v)+4)+'" text-anchor="end">'+v+'</text>';});
+  [0,30,60,90].forEach(a=>{s+='<line class="gr" x1="'+X(a)+'" y1="'+y1+'" x2="'+X(a)+'" y2="'+y0+'"/><text x="'+X(a)+'" y="'+(y0+18)+'" text-anchor="middle">'+a+'°</text>';});
+  s+='<line class="ax" x1="'+x0+'" y1="'+y0+'" x2="'+x1+'" y2="'+y0+'"/><line class="ax" x1="'+x0+'" y1="'+y0+'" x2="'+x0+'" y2="'+y1+'"/>';
+  const ps=[],pp=[]; for(let a=0;a<=90;a+=0.5){const r=fres(n1,n2,a);ps.push([X(a),Y(r[0])]);pp.push([X(a),Y(r[1])]);}
+  s+='<path class="ce" d="'+P(ps)+'"/><path class="cb" d="'+P(pp)+'"/>';
+  const thB=Math.atan(n2/n1)*180/Math.PI;
+  s+='<line class="lt" x1="'+X(thB)+'" y1="'+y1+'" x2="'+X(thB)+'" y2="'+y0+'"/><circle class="ptb" cx="'+X(thB)+'" cy="'+Y(0)+'" r="4.5"/><text x="'+(X(thB)+6)+'" y="'+(y1+14)+'">θ_B = '+fmt(thB,1)+'°</text>';
+  let thC=null; if(n1>n2){thC=Math.asin(n2/n1)*180/Math.PI; s+='<line class="lt" x1="'+X(thC)+'" y1="'+y1+'" x2="'+X(thC)+'" y2="'+y0+'"/><text x="'+(X(thC)-6)+'" y="'+(y1+30)+'" text-anchor="end">θ_c = '+fmt(thC,1)+'°</text>';}
+  s+='<text x="'+(x0+8)+'" y="'+(y1+12)+'" style="fill:var(--e)">R_s</text><text x="'+(x0+38)+'" y="'+(y1+12)+'" style="fill:var(--b)">R_p</text><text x="'+x1+'" y="'+(y0+36)+'" text-anchor="end">кут падіння θ_i</text>';
+  $('#f3').innerHTML=s;
+  const R0=Math.pow((n1-n2)/(n1+n2),2);
+  $('#ro3').innerHTML='<span>R(0°) = <b>'+fmt(R0,4)+'</b></span><span>θ_B = <b>'+fmt(thB,1)+'°</b></span><span>'+(thC!==null?'θ_c = <b>'+fmt(thC,1)+'°</b> (повне відбивання)':'повного відбивання немає (n₁ ≤ n₂)')+'</span>';
+}
+
+/* 4. скін-ефект */
+const MU0=4e-7*Math.PI;
+function fmtLen(m){return m<1e-3?fmt(m*1e6,1)+' мкм':fmt(m*1e3,2)+' мм';}
+function fmtF(f){return f<1e3?fmt(f,0)+' Гц':f<1e6?fmt(f/1e3,1)+' кГц':f<1e9?fmt(f/1e6,1)+' МГц':fmt(f/1e9,2)+' ГГц';}
+function drawSkin(){
+  const lf=+$('#sf').value, sig=+$('#sm').value; $('#sfo').textContent=fmt(lf,1);
+  const f=Math.pow(10,lf), d=Math.sqrt(2/(MU0*sig*2*Math.PI*f)), zmax=0.005;
+  const x0=56,x1=610,y0=236,y1=24, X=z=>x0+(x1-x0)*z/zmax, Y=v=>y0-(y0-y1)*v;
+  let s='';
+  [0,0.5,1].forEach(v=>{s+='<line class="gr" x1="'+x0+'" y1="'+Y(v)+'" x2="'+x1+'" y2="'+Y(v)+'"/><text x="'+(x0-8)+'" y="'+(Y(v)+4)+'" text-anchor="end">'+v+'</text>';});
+  [0,1,2,3,4,5].forEach(a=>{s+='<line class="gr" x1="'+X(a/1000)+'" y1="'+y1+'" x2="'+X(a/1000)+'" y2="'+y0+'"/><text x="'+X(a/1000)+'" y="'+(y0+18)+'" text-anchor="middle">'+a+'</text>';});
+  const pts=[]; for(let i=0;i<=240;i++){const z=zmax*i/240; pts.push([X(z),Y(Math.exp(-z/d))]);}
+  s+='<path class="fb" d="'+P(pts)+' L'+x1+' '+y0+' L'+x0+' '+y0+' Z"/><path class="cb" d="'+P(pts)+'"/>';
+  s+='<line class="ax" x1="'+x0+'" y1="'+y0+'" x2="'+x1+'" y2="'+y0+'"/><line class="ax" x1="'+x0+'" y1="'+y0+'" x2="'+x0+'" y2="'+y1+'"/>';
+  if(d<=zmax){const xd=X(d); s+='<line class="lt" x1="'+xd+'" y1="'+Y(Math.exp(-1))+'" x2="'+xd+'" y2="'+y0+'"/><circle class="pte" cx="'+xd+'" cy="'+Y(Math.exp(-1))+'" r="4.5"/><text x="'+(xd+8)+'" y="'+(Y(Math.exp(-1))-8)+'" style="fill:var(--e)">z = δ: 1/e</text>';}
+  s+='<text x="'+x1+'" y="'+(y0+38)+'" text-anchor="end">глибина z, мм</text><text x="'+(x0+8)+'" y="'+(y1+12)+'">E(z)/E(0) = e^(−z/δ)</text>';
+  $('#f4').innerHTML=s;
+  $('#ro4').innerHTML='<span>f = <b>'+fmtF(f)+'</b></span><span>δ = <b>'+fmtLen(d)+'</b></span><span>R_s = 1/(σδ) = <b>'+fmt(1e3/(sig*d),2)+' мОм</b></span><span>δ ∝ f^(−1/2)</span>';
+}
+
+/* 5. диполь */
+function drawDipole(){
+  const w=+$('#dw').value,p=+$('#dp').value; $('#dwo').textContent=fmt(w,1); $('#dpo').textContent=fmt(p,1);
+  const cx=210,cy=170,R=125, pts=[]; for(let k=0;k<=360;k+=3){const a=k*Math.PI/180; pts.push([cx+R*Math.pow(Math.sin(a),3),cy-R*Math.pow(Math.sin(a),2)*Math.cos(a)]);}
+  let s='<line class="gr" x1="'+(cx-170)+'" y1="'+cy+'" x2="'+(cx+170)+'" y2="'+cy+'"/><line class="gr" x1="'+cx+'" y1="'+(cy-150)+'" x2="'+cx+'" y2="'+(cy+150)+'"/>';
+  s+='<path class="fe" d="'+P(pts)+' Z" opacity=".9"/><path class="ce" d="'+P(pts)+' Z"/>';
+  s+=arrow(cx,cy+36,cx,cy-40,'sk')+'<text x="'+(cx+8)+'" y="'+(cy-24)+'" class="big">p</text>';
+  s+='<text x="'+(cx+R+4)+'" y="'+(cy-6)+'">θ = 90°</text><text x="'+(cx+8)+'" y="'+(cy-150+12)+'">θ = 0: I = 0</text><text x="20" y="324">I(θ) ∝ sin²θ</text>';
+  $('#f5').innerHTML=s;
+  const r=Math.pow(w,4)*p*p;
+  $('#ro5').innerHTML='<span>⟨P⟩/P₀ = (ω/ω₀)⁴·(p₀/p₀₀)² = <b>'+fmt(r,2)+'</b></span><span>вздовж осі: I = <b>0</b></span><span style="flex-basis:100%">Відносна потужність<div class="hbar"><i style="width:'+(100*Math.log(1+r)/Math.log(1+729)).toFixed(1)+'%"></i></div></span>';
+}
+
+/* 6. феромагнетик */
+function solveM(t){ if(t>=1) return 0; let lo=1e-9,hi=1; for(let i=0;i<80;i++){const m=(lo+hi)/2; if(Math.tanh(m/t)-m>0) lo=m; else hi=m;} return (lo+hi)/2; }
+function drawMag(){
+  const t=+$('#mt').value; $('#mto').textContent=fmt(t);
+  const m0=solveM(t);
+  let s='';
+  /* ліва: m(τ) */
+  const ax0=50,ax1=300,ay0=250,ay1=30, X=v=>ax0+(ax1-ax0)*v/1.6, Y=v=>ay0-(ay0-ay1)*v;
+  [0,0.5,1].forEach(v=>{s+='<line class="gr" x1="'+ax0+'" y1="'+Y(v)+'" x2="'+ax1+'" y2="'+Y(v)+'"/><text x="'+(ax0-6)+'" y="'+(Y(v)+4)+'" text-anchor="end">'+v+'</text>';});
+  [0,0.5,1,1.5].forEach(v=>{s+='<line class="gr" x1="'+X(v)+'" y1="'+ay1+'" x2="'+X(v)+'" y2="'+ay0+'"/><text x="'+X(v)+'" y="'+(ay0+16)+'" text-anchor="middle">'+v+'</text>';});
+  s+='<line class="ax" x1="'+ax0+'" y1="'+ay0+'" x2="'+ax1+'" y2="'+ay0+'"/><line class="ax" x1="'+ax0+'" y1="'+ay0+'" x2="'+ax0+'" y2="'+ay1+'"/>';
+  const cv=[]; for(let u=0.02;u<=0.9995;u+=0.005) cv.push([X(u),Y(solveM(u))]); cv.push([X(1),Y(0)]); cv.push([X(1.6),Y(0)]);
+  s+='<path class="cb" d="'+P(cv)+'"/><circle class="pte" cx="'+X(t)+'" cy="'+Y(m0)+'" r="5"/>';
+  s+='<text x="'+ax0+'" y="20">m = M/(nμ) від T/T_c</text><text x="'+ax1+'" y="'+(ay0+34)+'" text-anchor="end">T / T_c</text>';
+  /* права: m і tanh(m/τ) */
+  const bx0=370,bx1=610,by0=250,by1=30,bc=[(bx0+bx1)/2,(by0+by1)/2], sx=(bx1-bx0)/2.6, sy=(by0-by1)/2.6;
+  const BX=m=>bc[0]+sx*m, BY=v=>bc[1]-sy*v;
+  s+='<line class="gr" x1="'+bx0+'" y1="'+bc[1]+'" x2="'+bx1+'" y2="'+bc[1]+'"/><line class="gr" x1="'+bc[0]+'" y1="'+by1+'" x2="'+bc[0]+'" y2="'+by0+'"/>';
+  s+='<path class="ax" d="'+P([[BX(-1.3),BY(-1.3)],[BX(1.3),BY(1.3)]])+'"/>';
+  const tc=[]; for(let m=-1.3;m<=1.3001;m+=0.02) tc.push([BX(m),BY(Math.tanh(m/t))]);
+  s+='<path class="ce" d="'+P(tc)+'"/>';
+  if(m0>0) s+='<circle class="ptb" cx="'+BX(m0)+'" cy="'+BY(m0)+'" r="5"/><circle class="ptb" cx="'+BX(-m0)+'" cy="'+BY(-m0)+'" r="5"/>';
+  s+='<circle class="pt" cx="'+BX(0)+'" cy="'+BY(0)+'" r="3.5"/>';
+  s+='<text x="'+bx0+'" y="20">y = m (чорна) і y = tanh(m/τ) (червона)</text><text x="'+bx1+'" y="'+(by0+34)+'" text-anchor="end">m</text>';
+  $('#f6').innerHTML=s;
+  $('#ro6').innerHTML=t<1?'<span>T &lt; T_c: m₀ = <b>'+fmt(m0,3)+'</b> (стійкі ±m₀, m = 0 нестійкий)</span>':'<span>T ≥ T_c: єдиний розв\'язок m = <b>0</b></span><span>χ ∝ 1/(T − T_c) = <b>'+(t>1.0001?fmt(1/(t-1),2):'∞')+'</b>·C/T_c</span>';
+}
+
+/* ---------- старт ---------- */
+['s1','s2','n1','n2','sf','sm','dw','dp','mt'].forEach(id=>{
+  const f={s1:()=>drawLight(),s2:()=>drawMink(),n1:()=>drawFresnel(),n2:()=>drawFresnel(),sf:()=>drawSkin(),sm:()=>drawSkin(),dw:()=>drawDipole(),dp:()=>drawDipole(),mt:()=>drawMag()}[id];
+  $('#'+id).addEventListener('input',f);
+});
+loadProg();
+fetch('cards.json').then(r=>r.json()).then(d=>{
+  cards=d; fillSections($('#t-sec')); fillSections($('#r-sec'));
+  $('#t-sec').onchange=e=>{st.sec=e.target.value;buildQueue();};
+  $('#t-filter').onchange=e=>{st.filter=e.target.value;buildQueue();};
+  $('#t-shuf').onchange=e=>{st.shuffle=e.target.checked;buildQueue();};
+  buildQueue(); renderRef(); showTab(location.hash.slice(1));
+}).catch(()=>{$('#t-panel').innerHTML='<div class="empty">Не вдалося завантажити питання. Онови сторінку.</div>';});
+showTab(location.hash.slice(1));
+</script>
+
+</body>
+</html>
