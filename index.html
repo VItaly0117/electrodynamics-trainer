@@ -78,6 +78,9 @@ details summary .t{min-width:0;overflow-wrap:anywhere}
 details .ans{margin:0;padding:12px;border-top:1px dashed var(--line)}
 .dot{flex:none;width:9px;height:9px;border-radius:50%;margin-left:auto;align-self:center;border:1px solid var(--line)}
 .dot.k{background:var(--b);border-color:var(--b)} .dot.w{background:var(--e);border-color:var(--e)}
+.tp h4{font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--b);margin:16px 0 6px}
+.tp p,.tp li{margin:4px 0}.tp ol,.tp ul{padding-left:20px;margin:4px 0}
+.tp .fm{overflow-x:auto;overflow-wrap:anywhere}
 .w{margin-bottom:22px}
 .wh{font:600 18px/1.2 var(--cond);margin:0 0 4px}
 .wd{color:var(--ink2);font-size:14px;margin:0 0 12px;max-width:66ch}
@@ -113,10 +116,11 @@ mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;max-width:100%}
 <header>
   <div class="kicker">Електродинаміка · курс Гусака А. М.</div>
   <h1>Тренажер до усного іспиту</h1>
-  <p class="sub"><a href="answers.pdf" style="color:var(--b)">Усі відповіді одним PDF (38 стор.)</a> · 431 питання з відповідями, формулами й посиланнями на лекції, плюс інтерактивні рисунки: що змінюється, коли крутиш параметр.</p>
+  <p class="sub"><a href="answers.pdf" style="color:var(--b)">Усі відповіді одним PDF (51 стор.)</a> · 431 питання з відповідями, формулами й посиланнями на лекції, плюс інтерактивні рисунки: що змінюється, коли крутиш параметр.</p>
 </header>
 <nav id="tabs" role="tablist" aria-label="Розділи">
   <button role="tab" data-tab="train" aria-selected="true">Тренування</button>
+  <button role="tab" data-tab="full" aria-selected="false">Розгорнуті</button>
   <button role="tab" data-tab="ref" aria-selected="false">Довідник</button>
   <button role="tab" data-tab="stv" aria-selected="false">СТВ</button>
   <button role="tab" data-tab="waves" aria-selected="false">Хвилі й метали</button>
@@ -136,6 +140,11 @@ mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;max-width:100%}
   </div>
   <div class="panel" id="t-panel"><div class="empty">Завантаження питань…</div></div>
   <div class="stats" id="t-stats"></div>
+</section>
+
+<section class="tab" id="tab-full" hidden>
+  <p class="wd">31 тема так, як її треба розповідати вголос: суть, логіка по кроках, формули, фізичний зміст і питання, які можуть поставити далі. Короткі тези за номерами питань лежать у «Довіднику».</p>
+  <div id="f-list"></div>
 </section>
 
 <section class="tab" id="tab-ref" hidden>
@@ -263,7 +272,7 @@ function typeset(el,n=0){
 }
 
 /* ---------- вкладки ---------- */
-const TABS=['train','ref','stv','waves','rad','mag'], typeset_done={};
+const TABS=['train','full','ref','stv','waves','rad','mag'], typeset_done={};
 function showTab(id){
   if(!TABS.includes(id)) id='train';
   TABS.forEach(t=>{ $('#tab-'+t).hidden=t!==id; const b=$('[data-tab="'+t+'"]'); b.setAttribute('aria-selected',String(t===id)); });
@@ -350,6 +359,19 @@ $('#r-list').addEventListener('toggle',e=>{
 },true);
 let rt; $('#r-q').addEventListener('input',()=>{clearTimeout(rt);rt=setTimeout(renderRef,180)});
 $('#r-sec').addEventListener('change',renderRef);
+
+/* ---------- розгорнуті відповіді ---------- */
+let topics=[];
+function renderFull(){
+  $('#f-list').innerHTML=topics.map((t,i)=>'<details data-i="'+i+'"><summary><span class="id">'+t.n+'</span><span class="t">'+t.t+'</span></summary></details>').join('');
+  typeset($('#f-list'));
+}
+$('#f-list').addEventListener('toggle',e=>{
+  const d=e.target; if(d.tagName!=='DETAILS'||!d.open||d.dataset.f) return;
+  const t=topics[+d.dataset.i]; if(!t) return; d.dataset.f=1;
+  const a=document.createElement('div'); a.className='ans tp'; a.innerHTML=t.h; d.appendChild(a); typeset(a);
+},true);
+fetch('topics.json').then(r=>r.json()).then(d=>{topics=d;renderFull();}).catch(()=>{$('#f-list').innerHTML='<div class="empty">Не вдалося завантажити розгорнуті відповіді. Онови сторінку.</div>';});
 
 /* ---------- рисунки: допоміжне ---------- */
 const P=(a)=>a.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
